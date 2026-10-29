@@ -1,0 +1,40 @@
+---
+import { Image } from "astro:assets";
+import Carousel from "./Carousel.astro";
+import VideoCarousel from "./VideoCarousel.astro";
+import { site } from "../data/site";
+
+const files = import.meta.glob<{ default: ImageMetadata }>("../assets/eventos/*.{jpg,jpeg,png,webp,avif}", { eager: true });
+const fotos = Object.entries(files)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, m], i) => ({ src: m.default, alt: `Foto de evento realizado no Flor de Maio ${i + 1}` }));
+const videos = site.eventos.videos;
+---
+
+<section id="eventos" class="section">
+  <div class="wrap">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 data-reveal class="text-5xl text-cream sm:text-6xl">{site.eventos.titulo}</h2>
+      <div data-draw data-reveal-delay="120" class="ornament mt-5" aria-hidden="true"></div>
+      <p data-reveal data-reveal-delay="220" class="mt-6 text-mute">{site.eventos.texto}</p>
+    </div>
+
+    <div data-reveal class="mt-14">
+      <h3 class="script mb-6 text-center text-4xl">Fotos</h3>
+      <Carousel label="Fotos de eventos">
+        {fotos.length > 0
+          ? fotos.map((f) => (
+              <div class="c-slide">
+                <Image src={f.src} alt={f.alt} widths={[400, 700, 1000]} sizes="(min-width:1100px) 33vw, (min-width:768px) 50vw, 100vw" loading="lazy" class="frame h-auto w-full" />
+              </div>
+            ))
+          : [0, 1, 2].map(() => <div class="c-slide"><div class="placeholder">Foto de evento</div></div>)}
+      </Carousel>
+    </div>
+
+    <div data-reveal class="mt-20">
+      <h3 class="script mb-6 text-center text-4xl">Vídeos</h3>
+      <VideoCarousel label="Vídeos de eventos" pasta="eventos" videos={videos} />
+    </div>
+  </div>
+</section>

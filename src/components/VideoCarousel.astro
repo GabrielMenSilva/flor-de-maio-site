@@ -1,0 +1,27 @@
+---
+import Carousel from "./Carousel.astro";
+import { comBase } from "../data/site";
+
+interface Props {
+  label: string;
+  pasta: string;
+  videos: { arquivo: string; poster?: string; legenda: string }[];
+}
+const { label, pasta, videos } = Astro.props;
+const base = comBase(`videos/${pasta}/`);
+---
+
+<Carousel label={label}>
+  {videos.length > 0
+    ? videos.map((v) => (
+        <div class="c-slide">
+          <figure>
+            <video controls preload="metadata" playsinline poster={v.poster ? base + v.poster : undefined} aria-label={v.legenda} class="frame mx-auto aspect-[9/16] h-[32rem] max-w-full bg-ink-2 object-contain">
+              <source src={base + v.arquivo} type="video/mp4" />
+            </video>
+            <figcaption class="mt-3 text-center text-sm text-mute">{v.legenda}</figcaption>
+          </figure>
+        </div>
+      ))
+    : [0, 1, 2].map(() => <div class="c-slide"><div class="placeholder">Vídeo de evento</div></div>)}
+</Carousel>

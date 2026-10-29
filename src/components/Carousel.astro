@@ -1,0 +1,103 @@
+---
+import Icon from "./Icon.astro";
+const { label } = Astro.props;
+---
+
+<div data-carousel class="relative" role="region" aria-roledescription="carrossel" aria-label={label}>
+  <div data-viewport class="overflow-hidden" tabindex="0" aria-label={`${label}: use as setas do teclado para navegar`}>
+    <div class="flex touch-pan-y">
+      <slot />
+    </div>
+  </div>
+  <div class="mt-5 flex items-center justify-center gap-4">
+    <button type="button" data-prev class="frame p-2.5 text-gold-hi transition-opacity hover:bg-gold/10 disabled:opacity-30" aria-label={`${label}: anterior`}><Icon name="prev" class="h-6 w-6" /></button>
+    <div data-dots class="flex items-center gap-1"></div>
+    <button type="button" data-next class="frame p-2.5 text-gold-hi transition-opacity hover:bg-gold/10 disabled:opacity-30" aria-label={`${label}: próximo`}><Icon name="next" class="h-6 w-6" /></button>
+  </div>
+</div>
+
+<style is:global>
+  [data-carousel] .c-slide {
+    flex: 0 0 100%;
+    min-width: 0;
+    padding-inline: 0.5rem;
+  }
+  @media (min-width: 768px) {
+    [data-carousel] .c-slide { flex-basis: 50%; }
+  }
+  @media (min-width: 1100px) {
+    [data-carousel] .c-slide { flex-basis: 33.3333%; }
+  }
+  [data-carousel] [data-dots] button {
+    width: 1.75rem;
+    height: 1.75rem;
+    display: grid;
+    place-items: center;
+  }
+  [data-carousel] [data-dots] button::after {
+    content: "";
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-gold);
+    transition: background-color 0.2s;
+  }
+  [data-carousel] [data-dots] button[aria-current="true"]::after {
+    background: var(--color-gold-hi);
+  }
+</style>
+
+<script>
+  import EmblaCarousel from "embla-carousel";
+
+  document.querySelectorAll<HTMLElement>("[data-carousel]").forEach((root) => {
+    const viewport = root.querySelector<HTMLElement>("[data-viewport]")!;
+    const prev = root.querySelector<HTMLButtonElement>("[data-prev]")!;
+    const next = root.querySelector<HTMLButtonElement>("[data-next]")!;
+    const dotsBox = root.querySelector<HTMLElement>("[data-dots]")!;
+    // Sem plugin autoplay: só muda por ação do usuário.
+    const embla = EmblaCarousel(viewport, { align: "start", containScroll: "trimSnaps", slidesToScroll: 1, inViewThreshold: 0.6 });
+
+    let dots: HTMLButtonElement[] = [];
+    function buildDots() {
+      dotsBox.innerHTML = "";
+      dots = embla.scrollSnapList().map((_, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.setAttribute("aria-label", `Ir para o item ${i + 1}`);
+        b.addEventListener("click", () => embla.scrollTo(i));
+        dotsBox.appendChild(b);
+        return b;
+      });
+      const single = dots.length <= 1;
+      prev.hidden = next.hidden = dotsBox.hidden = single;
+    }
+    function update() {
+      dots.forEach((d, i) => d.setAttribute("aria-current", String(i === embla.selectedScrollSnap())));
+      prev.disabled = !embla.canScrollPrev();
+      next.disabled = !embla.canScrollNext();
+    }
+    const slides = embla.slideNodes();
+    function marcarVisiveis() {
+      const vis = new Set(embla.slidesInView());
+      slides.forEach((s, i) => s.classList.toggle("is-inview", vis.has(i)));
+    }
+    function pauseVideos() {
+      root.querySelectorAll("video").forEach((v) => v.pause());
+    }
+
+    prev.addEventListener("click", () => embla.scrollPrev());
+    next.addEventListener("click", () => embla.scrollNext());
+    viewport.addEventListener("keydown", (e) => {
+      if (e.target !== viewport) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); embla.scrollPrev(); }
+      if (e.key === "ArrowRight") { e.preventDefault(); embla.scrollNext(); }
+    });
+    embla.on("select", () => { pauseVideos(); update(); });
+    embla.on("slidesInView", marcarVisiveis);
+    embla.on("reInit", () => { buildDots(); update(); marcarVisiveis(); });
+    buildDots();
+    update();
+    marcarVisiveis();
+  });
+</script>

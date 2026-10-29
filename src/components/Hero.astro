@@ -1,0 +1,86 @@
+---
+import { Image } from "astro:assets";
+import hero from "../assets/hero.webp";
+import Icon from "./Icon.astro";
+import { site } from "../data/site";
+
+// Pétalas decorativas: x = posição horizontal, s = tamanho, t = duração, dl = atraso, dx = deriva, po = opacidade
+const petalas = [
+  { x: "8%", s: "7px", t: "19s", dl: "-3s", dx: "40px", po: 0.4 },
+  { x: "19%", s: "5px", t: "23s", dl: "-12s", dx: "-30px", po: 0.35 },
+  { x: "31%", s: "8px", t: "21s", dl: "-7s", dx: "50px", po: 0.45 },
+  { x: "46%", s: "5px", t: "26s", dl: "-17s", dx: "-40px", po: 0.3 },
+  { x: "58%", s: "7px", t: "20s", dl: "-1s", dx: "35px", po: 0.4 },
+  { x: "71%", s: "6px", t: "24s", dl: "-14s", dx: "-45px", po: 0.35 },
+  { x: "83%", s: "8px", t: "22s", dl: "-9s", dx: "30px", po: 0.45 },
+  { x: "93%", s: "5px", t: "27s", dl: "-20s", dx: "-35px", po: 0.3 },
+];
+---
+
+<section id="inicio" class="relative isolate flex min-h-[100svh] items-center justify-center overflow-hidden text-center">
+  <div data-parallax class="absolute inset-x-0 -top-[16%] -z-20 h-[116%]">
+    <Image
+      src={hero}
+      alt="Fachada do Flor de Maio Festas e Eventos, com entrada ladeada por jardim e playground ao fundo"
+      widths={[640, 1024, 1440]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+      class="hero-zoom h-full w-full object-cover"
+    />
+  </div>
+  <div class="absolute inset-0 -z-10 bg-gradient-to-b from-ink/85 via-ink/70 to-ink"></div>
+
+  <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+    {petalas.map((p) => (
+      <span class="petal" style={`--x:${p.x};--s:${p.s};--t:${p.t};--dl:${p.dl};--dx:${p.dx};--po:${p.po}`}></span>
+    ))}
+  </div>
+
+  <div class="wrap relative pt-20 pb-24">
+    <h1 class="hero-seq font-display text-6xl font-medium tracking-[0.1em] text-cream sm:text-7xl lg:text-8xl" style="--hd:100ms">
+      FLOR DE MAIO
+    </h1>
+    <p class="script hero-wipe mt-1 text-4xl sm:text-5xl" style="--hd:280ms">{site.subtitulo}</p>
+    <div class="ornament hero-ornament mt-6" aria-hidden="true" style="--hd:480ms">
+      <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z" /></svg>
+    </div>
+    <p class="hero-seq mx-auto mt-8 max-w-2xl font-display text-3xl text-cream sm:text-4xl" style="--hd:600ms">{site.hero.frase}</p>
+    <p class="hero-seq mx-auto mt-4 max-w-xl text-cream/90" style="--hd:720ms">{site.hero.subtitulo}</p>
+    <div class="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+      <a href={site.whatsapp.link} target="_blank" rel="noopener" class="btn btn-primary hero-seq" style="--hd:820ms">
+        <Icon name="whatsapp" class="h-5 w-5" /> Fale pelo WhatsApp
+      </a>
+      <a href="#espaco" class="btn btn-ghost hero-seq" style="--hd:910ms">Conheça o espaço</a>
+    </div>
+  </div>
+
+  <a href="#espaco" class="scroll-cue absolute bottom-6 left-1/2 -translate-x-1/2 p-3 text-gold" aria-label="Rolar para o espaço">
+    <span><Icon name="chevron" class="h-6 w-6" /></span>
+  </a>
+</section>
+
+<script>
+  // Paralaxe leve da foto do topo (desligada no celular e com movimento reduzido)
+  const el = document.querySelector<HTMLElement>("[data-parallax]");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches && document.documentElement.dataset.motion !== "on";
+  const factor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--motion-parallax")) || 0;
+  if (el && !reduce && factor > 0) {
+    let ticking = false;
+    const apply = () => {
+      ticking = false;
+      if (innerWidth < 768 || scrollY > innerHeight * 1.2) return;
+      el.style.transform = `translate3d(0, ${(scrollY * factor).toFixed(1)}px, 0)`;
+    };
+    addEventListener(
+      "scroll",
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(apply);
+        }
+      },
+      { passive: true },
+    );
+  }
+</script>

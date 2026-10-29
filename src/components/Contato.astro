@@ -1,0 +1,48 @@
+---
+import Icon from "./Icon.astro";
+import { site, enderecoCompleto, mapaEmbed, mapaLink } from "../data/site";
+
+const cartoes = [
+  { icone: "whatsapp", titulo: "WhatsApp", texto: site.whatsapp.exibicao, href: site.whatsapp.link },
+  { icone: "instagram", titulo: "Instagram", texto: site.instagram.usuario, href: site.instagram.link },
+  { icone: "pin", titulo: "Endereço", texto: enderecoCompleto, href: mapaLink },
+];
+---
+
+<section id="contato" class="section">
+  <div class="wrap">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 data-reveal class="text-5xl text-cream sm:text-6xl">{site.contato.titulo}</h2>
+      <div data-draw data-reveal-delay="120" class="ornament mt-5" aria-hidden="true"></div>
+      <p data-reveal data-reveal-delay="220" class="mt-6 text-mute">{site.contato.texto}</p>
+    </div>
+
+    <div class="mt-14 grid gap-8 lg:grid-cols-5">
+      <div data-reveal="fade" class="lg:col-span-3">
+        <iframe
+          src={mapaEmbed}
+          title="Mapa com a localização do Flor de Maio Festas e Eventos"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen
+          class="frame h-80 w-full bg-ink-2 lg:h-full lg:min-h-96"></iframe>
+      </div>
+      <ul data-reveal-stagger class="flex flex-col gap-4 lg:col-span-2">
+        {cartoes.map((c) => (
+          <li data-reveal>
+            <a href={c.href} target="_blank" rel="noopener" class="frame flex items-start gap-4 bg-ink-2 p-5 transition-colors hover:border-gold hover:bg-gold/10">
+              <span class="mt-1 text-gold"><Icon name={c.icone} /></span>
+              <span>
+                <span class="block font-display text-2xl text-cream">{c.titulo}</span>
+                <span class="block text-sm text-mute">{c.texto}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+        <li data-reveal>
+          <a href={mapaLink} target="_blank" rel="noopener" class="btn btn-primary w-full">Como chegar</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>

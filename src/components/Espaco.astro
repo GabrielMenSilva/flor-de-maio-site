@@ -1,0 +1,73 @@
+---
+import { Image, getImage } from "astro:assets";
+import Icon from "./Icon.astro";
+import VideoCarousel from "./VideoCarousel.astro";
+import Lightbox from "./Lightbox.astro";
+import { site } from "../data/site";
+
+const files = import.meta.glob<{ default: ImageMetadata }>("../assets/espaco/*.{jpg,jpeg,png,webp,avif}", { eager: true });
+const fotos = await Promise.all(
+  Object.entries(files)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(async ([, m], i) => ({
+      src: m.default,
+      alt: `Foto do espaço ${i + 1}`,
+      ratio: m.default.width / m.default.height,
+      full: (await getImage({ src: m.default, width: 1600 })).src,
+    })),
+);
+const e = site.espaco;
+---
+
+<section id="espaco" class="section bg-ink-2">
+  <div class="wrap">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 data-reveal class="text-5xl text-cream sm:text-6xl">{e.titulo}</h2>
+      <div data-draw data-reveal-delay="120" class="ornament mt-5" aria-hidden="true"></div>
+      <p data-reveal data-reveal-delay="220" class="mt-6 text-mute">{e.texto}</p>
+    </div>
+
+    <ul data-reveal-stagger class="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      {e.comodidades.map((c) => (
+        <li data-reveal class="first:col-span-2 sm:first:col-span-1">
+          <div class="card frame flex h-full flex-col items-center gap-3 bg-ink px-4 py-7 text-center">
+            <span class="card-icon text-gold"><Icon name={c.icone} /></span>
+            <h3 class="text-2xl text-cream">{c.titulo}</h3>
+            <p class="text-sm text-mute">{c.texto}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+
+    <div data-reveal-stagger class="mt-14 flex flex-wrap justify-center gap-3">
+      {fotos.length > 0
+        ? fotos.map((f) => (
+            <button type="button" data-reveal data-lightbox data-full={f.full} data-alt={f.alt} style={`--r:${f.ratio.toFixed(4)}`} class="gal-item group frame block overflow-hidden bg-ink" aria-label={`Ampliar: ${f.alt}`}>
+              <Image src={f.src} alt={f.alt} widths={[400, 800, 1200]} sizes="(min-width:768px) 40vw, 100vw" class="gal-img block h-auto w-full" loading="lazy" />
+            </button>
+          ))
+        : [0, 1, 2].map(() => <div class="placeholder">Foto do espaço</div>)}
+    </div>
+    <Lightbox />
+
+    <div data-reveal class="mt-20">
+      <h3 class="script mb-6 text-center text-4xl">Vídeos do espaço</h3>
+      <VideoCarousel label="Vídeos do espaço" pasta="espaco" videos={e.videos} />
+    </div>
+
+    <p class="mt-14 flex items-center justify-center gap-2 text-mute">
+      <Icon name="pin" class="h-5 w-5 text-gold" /> {e.localizacao}
+    </p>
+  </div>
+</section>
+
+<style>
+  /* Galeria justificada: largura proporcional à proporção da imagem, sem cortes */
+  .gal-item { flex: 1 1 100%; }
+  @media (min-width: 768px) {
+    .gal-item {
+      flex: var(--r) 1 calc(var(--r) * 28rem);
+      max-width: calc(var(--r) * 36rem);
+    }
+  }
+</style>

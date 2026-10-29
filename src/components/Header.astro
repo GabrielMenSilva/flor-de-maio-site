@@ -1,0 +1,88 @@
+---
+import { Image } from "astro:assets";
+import logo from "../assets/logo.jpg";
+import Icon from "./Icon.astro";
+import { site } from "../data/site";
+---
+
+<header id="topo" class="site-header fixed inset-x-0 top-0 z-50">
+  <div class="hdr-bg" aria-hidden="true"></div>
+  <div class="wrap hdr-row relative flex h-[4.5rem] items-center justify-between">
+    <a href="#inicio" class="hdr-brand flex items-center gap-3">
+      <Image src={logo} alt="" width={80} height={80} class="h-10 w-10 rounded-full" />
+      <span class="leading-none">
+        <span class="block font-display text-xl tracking-[0.12em] text-cream">FLOR DE MAIO</span>
+        <span class="script block text-base">{site.subtitulo}</span>
+      </span>
+    </a>
+
+    <nav aria-label="Principal" class="hidden md:block">
+      <ul class="flex gap-8 text-sm">
+        {site.nav.map((i) => (
+          <li>
+            <a href={i.href} data-nav class="nav-link block py-3 text-mute transition-colors hover:text-gold-hi aria-[current=true]:text-gold-hi">{i.label}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <button id="menu-btn" type="button" class="p-2 text-gold-hi md:hidden" aria-expanded="false" aria-controls="menu-painel" aria-label="Abrir menu">
+      <Icon name="menu" class="h-7 w-7" />
+    </button>
+  </div>
+
+  <nav id="menu-painel" aria-label="Menu móvel" hidden class="relative border-t border-gold/20 bg-ink/95 md:hidden">
+    <ul class="wrap flex flex-col py-3">
+      {site.nav.map((i) => (
+        <li>
+          <a href={i.href} data-nav class="block py-3 font-display text-xl text-cream aria-[current=true]:text-gold-hi">{i.label}</a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const header = document.getElementById("topo") as HTMLElement;
+  const btn = document.getElementById("menu-btn") as HTMLButtonElement;
+  const panel = document.getElementById("menu-painel") as HTMLElement;
+
+  // Fundo do header: transparente no topo, escuro com blur ao rolar
+  function marcarRolagem() {
+    header.dataset.scrolled = String(scrollY > 24);
+  }
+  addEventListener("scroll", marcarRolagem, { passive: true });
+  marcarRolagem();
+
+  function setOpen(open: boolean) {
+    btn.setAttribute("aria-expanded", String(open));
+    btn.setAttribute("aria-label", open ? "Fechar menu" : "Abrir menu");
+    panel.hidden = !open;
+  }
+  btn.addEventListener("click", () => setOpen(btn.getAttribute("aria-expanded") !== "true"));
+  panel.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !panel.hidden) {
+      setOpen(false);
+      btn.focus();
+    }
+  });
+  matchMedia("(min-width: 768px)").addEventListener("change", (m) => m.matches && setOpen(false));
+
+  // Destaque da seção atual
+  const links = document.querySelectorAll<HTMLAnchorElement>("a[data-nav]");
+  const sections = [...document.querySelectorAll<HTMLElement>("main section[id]")];
+  function atualizar() {
+    const y = window.scrollY + window.innerHeight * 0.35;
+    let atual = sections[0]?.id;
+    for (const s of sections) if (s.offsetTop <= y) atual = s.id;
+    if (window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) atual = sections.at(-1)?.id;
+    links.forEach((a) => a.setAttribute("aria-current", String(a.getAttribute("href") === `#${atual}`)));
+  }
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(atualizar, { rootMargin: "-35% 0px -60% 0px" });
+    sections.forEach((s) => io.observe(s));
+  }
+  window.addEventListener("scroll", atualizar, { passive: true });
+  atualizar();
+</script>

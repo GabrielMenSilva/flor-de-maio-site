@@ -1,0 +1,463 @@
+/* ==========================================================
+   Animações do site. Ajuste intensidades e durações aqui.
+   Só transform e opacity (clip-path no "festas e eventos").
+   ========================================================== */
+
+@theme static {
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-reveal-dur: 700ms; /* revelação ao rolar */
+  --motion-reveal-dist: 22px; /* distância do deslocamento (12px no celular) */
+  --motion-stagger: 100ms; /* intervalo entre irmãos */
+  --motion-hero-dur: 650ms; /* cada passo da entrada do hero */
+  --motion-hero-zoom: 1.06; /* zoom final da foto do topo */
+  --motion-hero-zoom-dur: 20s;
+  --motion-parallax: 0.15; /* 0 desliga a paralaxe */
+  --motion-hover-dur: 350ms;
+  --motion-glow-dur: 8s; /* pulso do brilho da logo */
+  --motion-glow-min: 0.35; /* opacidade mínima do brilho */
+  --motion-glow-max: 0.8; /* opacidade máxima do brilho */
+  --motion-wa-pulse-dur: 6s; /* intervalo do anel do WhatsApp */
+}
+
+@media (max-width: 767px) {
+  :root {
+    --motion-reveal-dist: 12px;
+  }
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+/* ---------- Revelação ao rolar (só com JS ativo) ---------- */
+.js [data-reveal] {
+  --tx: 0px;
+  --ty: var(--motion-reveal-dist);
+  --sc: 1;
+  opacity: 0;
+  transform: translate3d(var(--tx), var(--ty), 0) scale(var(--sc));
+  transition:
+    opacity var(--motion-reveal-dur) var(--motion-ease) var(--d, 0ms),
+    transform var(--motion-reveal-dur) var(--motion-ease) var(--d, 0ms);
+}
+.js [data-reveal="left"] {
+  --tx: calc(var(--motion-reveal-dist) * -2);
+  --ty: 0px;
+}
+.js [data-reveal="right"] {
+  --tx: calc(var(--motion-reveal-dist) * 2);
+  --ty: 0px;
+  --sc: 0.96;
+}
+.js [data-reveal="fade"] {
+  --ty: 0px;
+}
+.js [data-reveal="scale"] {
+  --ty: 0px;
+  --sc: 0.96;
+}
+.js [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Filete dourado que se desenha do centro para as pontas */
+.ornament::before,
+.ornament::after {
+  transition: transform 800ms var(--motion-ease) calc(var(--d, 0ms) + 150ms);
+}
+.ornament::before {
+  transform-origin: right center;
+}
+.ornament::after {
+  transform-origin: left center;
+}
+.js .ornament[data-draw]:not(.is-in)::before,
+.js .ornament[data-draw]:not(.is-in)::after {
+  transform: scaleX(0);
+}
+
+/* ---------- Hero: entrada em cascata (CSS puro, sem esperar JS) ---------- */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translate3d(0, var(--motion-reveal-dist), 0); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hero-wipe {
+  from { opacity: 0; clip-path: inset(-25% 100% -25% -5%); }
+  to { opacity: 1; clip-path: inset(-25% -5% -25% -5%); }
+}
+@keyframes hero-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes hero-pop {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes hero-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.hero-seq {
+  animation: hero-rise var(--motion-hero-dur) var(--motion-ease) var(--hd, 0ms) backwards;
+}
+.hero-wipe {
+  animation: hero-wipe calc(var(--motion-hero-dur) + 150ms) var(--motion-ease) var(--hd, 0ms) backwards;
+}
+.hero-ornament::before,
+.hero-ornament::after {
+  animation: hero-draw var(--motion-hero-dur) var(--motion-ease) var(--hd, 0ms) backwards;
+}
+.hero-ornament > svg {
+  animation: hero-pop var(--motion-hero-dur) var(--motion-ease) var(--hd, 0ms) backwards;
+}
+
+/* Zoom lento, uma vez só */
+@keyframes hero-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(var(--motion-hero-zoom)); }
+}
+.hero-zoom {
+  animation: hero-zoom var(--motion-hero-zoom-dur) ease-out forwards;
+}
+
+/* Indicador de rolagem */
+@keyframes cue-bob {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, 8px, 0); }
+}
+.scroll-cue {
+  animation: hero-fade 800ms ease 1.6s backwards;
+}
+.scroll-cue > span {
+  display: block;
+  animation: cue-bob 2.6s ease-in-out infinite;
+}
+
+/* Pétalas douradas (só em telas largas) */
+@keyframes petal-float {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  12% { opacity: var(--po, 0.5); }
+  88% { opacity: var(--po, 0.5); }
+  100% { transform: translate3d(var(--dx, 30px), -110vh, 0) rotate(160deg); opacity: 0; }
+}
+.petal {
+  display: none;
+}
+@media (min-width: 768px) {
+  .petal {
+    display: block;
+    position: absolute;
+    bottom: -4%;
+    left: var(--x);
+    width: var(--s);
+    height: calc(var(--s) * 1.5);
+    border-radius: 0 100% 0 100%;
+    background: linear-gradient(135deg, var(--color-gold-hi), var(--color-gold));
+    opacity: 0;
+    animation: petal-float var(--t) linear var(--dl) infinite;
+  }
+}
+
+/* ---------- Header ---------- */
+.hdr-bg {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4.5rem;
+  transform-origin: top;
+  background: rgb(13 11 9 / 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgb(201 163 91 / 0.2);
+  transition:
+    opacity 400ms var(--motion-ease),
+    transform 400ms var(--motion-ease);
+}
+.hdr-row {
+  transition: transform 400ms var(--motion-ease);
+}
+.hdr-brand {
+  transform-origin: left center;
+  transition: transform 400ms var(--motion-ease);
+}
+.js .site-header:not([data-scrolled="true"]) .hdr-bg {
+  opacity: 0;
+}
+.js .site-header[data-scrolled="true"] .hdr-bg {
+  transform: scaleY(0.889);
+}
+.js .site-header[data-scrolled="true"] .hdr-row {
+  transform: translate3d(0, -0.25rem, 0);
+}
+.js .site-header[data-scrolled="true"] .hdr-brand {
+  transform: scale(0.94);
+}
+
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -2px 0;
+  height: 1px;
+  background: var(--color-gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 350ms var(--motion-ease);
+}
+.nav-link:hover::after,
+.nav-link[aria-current="true"]::after {
+  transform: scaleX(1);
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translate3d(0, -8px, 0); }
+  to { opacity: 1; transform: none; }
+}
+#menu-painel:not([hidden]) {
+  animation: menu-in 300ms var(--motion-ease) both;
+}
+#menu-painel:not([hidden]) li {
+  animation: menu-in 400ms var(--motion-ease) both;
+}
+#menu-painel:not([hidden]) li:nth-child(1) { animation-delay: 60ms; }
+#menu-painel:not([hidden]) li:nth-child(2) { animation-delay: 120ms; }
+#menu-painel:not([hidden]) li:nth-child(3) { animation-delay: 180ms; }
+#menu-painel:not([hidden]) li:nth-child(4) { animation-delay: 240ms; }
+#menu-painel:not([hidden]) li:nth-child(5) { animation-delay: 300ms; }
+
+/* ---------- Cartões, fotos, botões ---------- */
+.card {
+  transition:
+    transform var(--motion-hover-dur) var(--motion-ease),
+    border-color var(--motion-hover-dur) ease,
+    box-shadow var(--motion-hover-dur) ease;
+}
+.card-icon {
+  display: inline-block;
+  transition: transform var(--motion-hover-dur) var(--motion-ease);
+}
+.gal-img {
+  transition: transform 700ms var(--motion-ease);
+}
+
+@media (hover: hover) {
+  .card:hover {
+    transform: translate3d(0, -4px, 0);
+    border-color: var(--color-gold);
+    box-shadow: 0 0 24px rgb(201 163 91 / 0.18);
+  }
+  .card:hover .card-icon {
+    transform: scale(1.14);
+  }
+  .gal-item:hover .gal-img {
+    transform: scale(1.03);
+  }
+}
+
+.btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    background-color 0.25s,
+    color 0.25s,
+    border-color 0.25s,
+    transform var(--motion-hover-dur) var(--motion-ease);
+}
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.35) 50%, transparent 65%);
+  transform: translate3d(-120%, 0, 0);
+}
+@media (hover: hover) {
+  .btn:hover {
+    transform: translate3d(0, -2px, 0);
+  }
+  .btn:hover::after {
+    transform: translate3d(120%, 0, 0);
+    transition: transform 800ms var(--motion-ease);
+  }
+}
+
+.social-link {
+  display: inline-block;
+  transition:
+    transform var(--motion-hover-dur) var(--motion-ease),
+    color 0.25s;
+}
+@media (hover: hover) {
+  .social-link:hover {
+    transform: translate3d(0, -3px, 0);
+  }
+}
+
+/* ---------- Carrosséis ---------- */
+.js [data-carousel] .c-slide {
+  transition: opacity 500ms ease;
+}
+.js [data-carousel] .c-slide:not(.is-inview) {
+  opacity: 0.5;
+}
+[data-carousel] [data-dots] button::after {
+  transition:
+    transform 350ms var(--motion-ease),
+    background-color 0.25s;
+}
+[data-carousel] [data-dots] button[aria-current="true"]::after {
+  transform: scaleX(2.4);
+}
+[data-carousel] [data-prev],
+[data-carousel] [data-next] {
+  transition:
+    transform var(--motion-hover-dur) var(--motion-ease),
+    background-color 0.25s,
+    opacity 0.25s;
+}
+@media (hover: hover) {
+  [data-carousel] [data-prev]:not(:disabled):hover { transform: translate3d(-2px, 0, 0); }
+  [data-carousel] [data-next]:not(:disabled):hover { transform: translate3d(2px, 0, 0); }
+}
+
+/* ---------- Lightbox ---------- */
+@keyframes lb-in {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lb-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: scale(0.97); }
+}
+@keyframes lb-back-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lb-back-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes lb-photo {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+#lightbox[open] {
+  animation: lb-in 350ms var(--motion-ease);
+}
+#lightbox[open]::backdrop {
+  animation: lb-back-in 350ms ease;
+}
+#lightbox.is-closing {
+  animation: lb-out 250ms ease forwards;
+}
+#lightbox.is-closing::backdrop {
+  animation: lb-back-out 250ms ease forwards;
+}
+#lb-img.is-swapping {
+  animation: lb-photo 250ms ease;
+}
+
+/* ---------- Sobre: brilho da logo ---------- */
+@keyframes glow-pulse {
+  0%, 100% { opacity: var(--motion-glow-min); transform: scale(1); }
+  50% { opacity: var(--motion-glow-max); transform: scale(1.05); }
+}
+.logo-glow {
+  position: relative;
+}
+.logo-glow::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  z-index: -1;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgb(201 163 91 / 0.28), transparent 65%);
+  animation: glow-pulse var(--motion-glow-dur) ease-in-out infinite;
+}
+
+/* ---------- Botão flutuante do WhatsApp ---------- */
+@keyframes wa-ring {
+  0%, 82% { transform: scale(1); opacity: 0; }
+  84% { opacity: 0.55; }
+  100% { transform: scale(1.75); opacity: 0; }
+}
+.wa-float {
+  transition:
+    opacity 500ms var(--motion-ease),
+    transform 500ms var(--motion-ease),
+    background-color 0.25s;
+}
+.wa-float::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid var(--color-gold-hi);
+  opacity: 0;
+  pointer-events: none;
+  animation: wa-ring var(--motion-wa-pulse-dur) ease-out 2s infinite;
+}
+.js .wa-float:not(.is-visible) {
+  opacity: 0;
+  transform: scale(0.8);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .wa-float.is-visible:hover,
+  .wa-float:not(.is-visible):hover {
+    transform: scale(1.08);
+  }
+}
+
+/* ---------- Movimento reduzido: tudo estático e visível ----------
+   Para ver as animações mesmo com a preferência do sistema ativa
+   (apenas para conferir/demonstrar), abra o site com ?animacao=on. */
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion="on"]) *,
+  html:not([data-motion="on"]) *::before,
+  html:not([data-motion="on"]) *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+  html:not([data-motion="on"]).js [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  html:not([data-motion="on"]).js .ornament[data-draw]:not(.is-in)::before,
+  html:not([data-motion="on"]).js .ornament[data-draw]:not(.is-in)::after {
+    transform: none !important;
+  }
+  html:not([data-motion="on"]).js .wa-float:not(.is-visible) {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+  html:not([data-motion="on"]).js .site-header .hdr-row,
+  html:not([data-motion="on"]).js .site-header .hdr-brand,
+  html:not([data-motion="on"]).js .site-header .hdr-bg,
+  html:not([data-motion="on"]) .card,
+  html:not([data-motion="on"]) .card-icon,
+  html:not([data-motion="on"]) .gal-img,
+  html:not([data-motion="on"]) .btn,
+  html:not([data-motion="on"]) .social-link,
+  html:not([data-motion="on"]) [data-carousel] [data-prev],
+  html:not([data-motion="on"]) [data-carousel] [data-next] {
+    transition-property: color, background-color, border-color, opacity !important;
+    transition-duration: 150ms !important;
+  }
+  html:not([data-motion="on"]) .card:hover,
+  html:not([data-motion="on"]) .btn:hover,
+  html:not([data-motion="on"]) .gal-item:hover .gal-img,
+  html:not([data-motion="on"]) .social-link:hover {
+    transform: none !important;
+  }
+  html:not([data-motion="on"]) .petal,
+  html:not([data-motion="on"]) .btn::after {
+    display: none !important;
+  }
+}

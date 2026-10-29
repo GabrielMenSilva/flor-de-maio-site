@@ -1,0 +1,3 @@
+# Site em revisão: não indexar. Ao lançar, troque por "Allow: /" (veja o README).
+User-agent: *
+Disallow: /

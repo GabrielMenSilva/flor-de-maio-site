@@ -1,0 +1,36 @@
+---
+import { Image } from "astro:assets";
+import logo from "../assets/logo.jpg";
+import Icon from "./Icon.astro";
+import { site } from "../data/site";
+const ano = new Date().getFullYear();
+---
+
+<footer class="border-t border-gold/25 bg-ink-2 pb-10 pt-12">
+  <div class="wrap flex flex-col items-center gap-6 text-center">
+    <Image src={logo} alt={`Logo ${site.nomeCurto}`} width={160} height={160} loading="lazy" data-reveal="scale" class="h-20 w-20 rounded-full" />
+    <nav aria-label="Rodapé">
+      <ul data-reveal-stagger class="flex flex-wrap justify-center gap-x-7 gap-y-2 text-sm">
+        {site.nav.map((i) => <li data-reveal><a href={i.href} class="inline-block py-3 text-mute transition-colors hover:text-gold-hi">{i.label}</a></li>)}
+      </ul>
+    </nav>
+    <div data-reveal data-reveal-delay="300" class="flex gap-5 text-gold">
+      <a href={site.instagram.link} target="_blank" rel="noopener" aria-label="Instagram do Flor de Maio" class="social-link p-2 hover:text-gold-hi"><Icon name="instagram" /></a>
+      <a href={site.whatsapp.link} target="_blank" rel="noopener" aria-label="WhatsApp do Flor de Maio" class="social-link p-2 hover:text-gold-hi"><Icon name="whatsapp" /></a>
+    </div>
+    <div class="h-px w-full max-w-xs bg-gold/30" aria-hidden="true"></div>
+    <p data-reveal="fade" data-reveal-delay="400" class="text-sm text-mute">© {ano} {site.nome}. Todos os direitos reservados.</p>
+  </div>
+</footer>
+
+<a id="wa-float" href={site.whatsapp.link} target="_blank" rel="noopener" aria-label="Conversar pelo WhatsApp" class="wa-float fixed bottom-5 right-5 z-40 grid h-14 w-14 place-items-center rounded-full bg-gold text-ink shadow-lg shadow-black/50 hover:bg-gold-hi">
+  <Icon name="whatsapp" class="h-7 w-7" />
+</a>
+
+<script>
+  // O botão flutuante aparece depois de um pouco de rolagem
+  const wa = document.getElementById("wa-float")!;
+  const mostrar = () => wa.classList.toggle("is-visible", scrollY > 200);
+  addEventListener("scroll", mostrar, { passive: true });
+  mostrar();
+</script>
